@@ -1,4 +1,4 @@
-#remove this
+#remove this this is taken care of 
 
 x = rnorm(100)
 y = rnorm(100)
