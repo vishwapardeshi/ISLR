@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 #remove this can we get this done
+=======
+#remove this this is taken care of 
+>>>>>>> df39b03e4c1fb5402697543fd24734789983da99
 
 x = rnorm(100)
 y = rnorm(100)
