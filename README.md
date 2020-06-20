@@ -7,7 +7,7 @@ My tryst with Machine Learning began with a love for Statistics from high school
 ## Repository Outline
 
 The repository contains mini-projects on the following machine learning techniques:
-1. [Linear Regression](https://medium.com/p/cd18a392bd8b/edit) - Simple linear regression, multiple linear regression, non-linear transformation of predictors
+1. [Linear Regression](https://medium.com/@pardeshi.vishwa25/linear-regression-model-for-ml-cd18a392bd8b) - Simple linear regression, multiple linear regression, non-linear transformation of predictors
 2. Logistic Regression
 3. Linear Discriminant Analysis
 4. Quadratic Discriminant Analysis
