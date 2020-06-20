@@ -1,6 +1,6 @@
 # Machine Learning Projects
 
-My tryst with Machine Learning began with a love for Statistics from high school. During my Computer Engineering undergraduate program, I became comfortable with Machine Learning and those mini-projects are contained in this repository.
+My tryst with Machine Learning began with a love for Statistics from high school. During my Computer Engineering undergraduate program, I became comfortable with Machine Learning and since then I have worked on several mini-projects which are contained in this repository.
 
 **This repository contains X mini projects in Python & R.**
 
