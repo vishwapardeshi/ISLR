@@ -1,12 +1,14 @@
 # Linear Regression
 
-Here, the following topics are explored using R
+Linear Regression is the oldest supervised machine learning algorithm. Its assumption and a few variants are explored here alongwith exploratory data analysis.
 
 ## Dataset
 
 Autompg - UCI ML repository
 
 ## Concepts covered
+Here, the following topics are explored using R 
+
 1. [Simple Linear Regression](https://medium.com/@pardeshi.vishwa25/linear-regression-model-for-ml-cd18a392bd8b?source=friends_link&sk=7682368acebef7c531b02da7788892bf)
 2. [Multiple Linear Regression](https://medium.com/@pardeshi.vishwa25/linear-regression-model-for-ml-cd18a392bd8b?source=friends_link&sk=7682368acebef7c531b02da7788892bf)
 3. [Inference of Model](https://medium.com/@pardeshi.vishwa25/linear-regression-model-for-ml-cd18a392bd8b?source=friends_link&sk=7682368acebef7c531b02da7788892bf)
