@@ -11,6 +11,17 @@ The folder contains mini-projects which utilize Decision Tree algorithms. The fo
 ## Datasets
 1. Boston Housing Dataset
 
-## References
-1. Introduction to Statistical Learning by Gareth James • Daniela Witten • Trevor Hastie • Robert Tibshirani
-2. Hands on Machine Learning with Scikit Learn & Tensorflow
+## Concepts Covered
+The following are implemented:
+
+1. Splitting criteria - gini impurity & entropy
+2. Building & visualizing 2-level decision tree from scratch using python
+3. Baseline model for classification
+4. Classification Decision Tree
+5. Bagged Tree using sklearn
+6. Random Forest Classifier using sklearn
+
+## Tech used
+
+1. Python & packages - numpy, pandas, matplotlib, graphviz, sklearn
+2. Jupyter notebook
