@@ -9,17 +9,16 @@ My tryst with Machine Learning began with a love for Statistics from high school
 The repository contains mini-projects on the following machine learning techniques:
 1. [Linear Regression](https://medium.com/@pardeshi.vishwa25/linear-regression-model-for-ml-cd18a392bd8b) - Simple linear regression, multiple linear regression, non-linear transformation of predictors
 2. Logistic Regression
-3. Linear Discriminant Analysis
-4. Quadratic Discriminant Analysis
-5. K-Nearest Neighbour
-6. Polynomial Regression
-7. Splines
-8. GAM
-9. Decision Trees - Regression, Classification, Bagging, Boosting
-10. Support Vector Machines 
-11. Principal Component Analysis
-12. K-means Clustering
-13. Ensemble Models 
+3. Linear & Quadratic Discriminant Analysis
+4. K-Nearest Neighbour
+5. Polynomial Regression
+6. Splines
+7. GAM
+8. Decision Trees - Regression, Classification, Bagging, Boosting
+9. Support Vector Machines 
+10. Principal Component Analysis
+11. K-means Clustering
+12. Ensemble Models 
 
 ## References
 1. Introduction to Statistical Learning by Gareth James • Daniela Witten • Trevor Hastie • Robert Tibshirani
