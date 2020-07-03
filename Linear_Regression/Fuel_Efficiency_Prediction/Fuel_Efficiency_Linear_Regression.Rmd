@@ -2,8 +2,8 @@
 title: 'Fuel Efficiency Prediction: Linear Regression'
 author: 'By Vishwa Pardeshi'
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 In this notebook, we will predict the fuel consumption rate of cars using the autompg dataset which is available on the popular UCI machine learning repository. To learn more about linear regression refer [here.](https://medium.com/@pardeshi.vishwa25/linear-regression-model-for-ml-cd18a392bd8b?source=friends_link&sk=7682368acebef7c531b02da7788892bf)  
@@ -35,7 +35,7 @@ library(ISLR)
 library(tidyverse)
 library(ggplot2)
 library(corrplot)
-library(car)
+
 
 ```
 
@@ -118,9 +118,15 @@ Vieweing the scatterplot alongwith the summary makes our observation about the n
 
 **We notive that horsepower, weight, displacement have a clear relationship with mpg though not necessarily linear**
 
-### Correlation Matrix
+## Correlation Matrix
+
 ```{r}
 corr_matrix <- cor(Auto[, -which(names(Auto)=="name")])
+corr_matrix
+```
+
+### Heatmap of Correlation
+```{r}
 corrplot(corr_matrix, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
 ```
 
@@ -238,11 +244,14 @@ ggplot(data = Auto, mapping = aes(x = year, y = mpg)) +
 diagnostic_plot(multiple.lm)
 ```
 ```{r}
-
-vif(multiple.lm)
+library(rms)
+rms::vif(multiple.lm)
 ```
 
-6. Multi collinearity: When VIF values lies in 5 - 10 range, a problematic amount of collinearity si presented. This was evident from the correlation plot too.  The problem of collinearity is that it reduces the accuracy of the estimates of the regression coefficients and it causes the standard error to increase.
+
+
+
+6. Multi collinearity: When VIF values lies in 5 - 10 range, a problematic amount of collinearity is presented. This was evident from the correlation plot too.  The problem of collinearity is that it reduces the accuracy of the estimates of the regression coefficients and it causes the standard error to increase.
 
 
 ## Interaction Term
