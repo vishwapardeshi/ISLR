@@ -36,7 +36,7 @@ library(tidyverse)
 library(ggplot2)
 library(corrplot)
 
-
+knitr::purl()
 ```
 
 The *Auto* dataset is present in the ISLR package and hence can be called directly
@@ -50,7 +50,7 @@ Let us first look at the head of the dataset.
 ```{r data head, echo=FALSE}
 head(Auto)
 ```
-```{r}
+```{r data shape}
 cat("The auto dataset shape is ", dim(Auto)[1], "x", dim(Auto)[2])
 ```
 
@@ -61,7 +61,7 @@ summary(Auto)
 ```
 From summary we notice that origin, and cylinder and year could be categorical variables as they seem to be whole numbers with a limited range. Looking at the data variable this is not evident as they are all numeric value.
 
-```{r}
+```{r data type }
 str(Auto)
 ```
 **We notice that all the variables have the correct data type except name which can be converted to string.**
@@ -69,7 +69,7 @@ str(Auto)
 
 ### Number of unique values in each column
 Let's check out the number of unique values in each column.
-```{r unique values}
+```{r find unique values / column}
 
 no_unique_values <- function(column){
   unique_values_list <- unique(column)
@@ -98,7 +98,7 @@ Thus, We have established that:
 * car name: string (unique for each instance)
 
 ### Number of missing values in the dataset
-```{r missing values}
+```{r missing values/column}
 
 no_missing_values <- function(column){
   return(sum(is.na(column)))
@@ -120,13 +120,13 @@ Vieweing the scatterplot alongwith the summary makes our observation about the n
 
 ## Correlation Matrix
 
-```{r}
+```{r correlation matrix}
 corr_matrix <- cor(Auto[, -which(names(Auto)=="name")])
 corr_matrix
 ```
 
 ### Heatmap of Correlation
-```{r}
+```{r heatmap of correlation}
 corrplot(corr_matrix, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
 ```
 
@@ -144,7 +144,7 @@ We notice here that mpg has significant correlation with
 ## Clean Data
 
 ### Convert to categorical form i.e. factor
-```{r, output = F}
+```{r correct datatype, output = F}
 discrete_col <- c("origin", 'year', 'cylinders')
 Auto[, discrete_col] <- lapply(Auto[, discrete_col], factor)
 str(Auto[, discrete_col])
@@ -231,7 +231,7 @@ summary(multiple.lm)
 3. The coefficient of the year 0.75 suggest that later model have better mpg
 as shown in the figure below
 
-```{r}
+```{r inference}
 ggplot(data = Auto, mapping = aes(x = year, y = mpg)) +
          geom_boxplot()
 ```
@@ -240,10 +240,10 @@ ggplot(data = Auto, mapping = aes(x = year, y = mpg)) +
 
 5. Additionally, high leverage is noticed for point 14.
 
-```{r}
+```{r diagnostic plots}
 diagnostic_plot(multiple.lm)
 ```
-```{r}
+```{r vif}
 library(rms)
 rms::vif(multiple.lm)
 ```
@@ -255,7 +255,7 @@ rms::vif(multiple.lm)
 
 
 ## Interaction Term
-```{r}
+```{r interaction terms}
 inter.lm1 <- lm(mpg~displacement+origin+year*weight, data=Auto)
 inter.lm2 <- lm(mpg~year+origin+displacement*weight, data=Auto)
 summary(inter.lm1)
@@ -267,7 +267,7 @@ displacement & weight have statistically significant interaction.
 ## Non-linear transformations
 
 Here we are exploring various non-linear transformations such as log, polynomial.
-```{r}
+```{r non linear transformations}
 nonlinear.lm1 <- lm(mpg~displacement+I(log(weight))+year+origin, data=Auto)
 nonlinear.lm2 <- lm(mpg~poly(displacement,3)+weight+year+origin, data=Auto)
 nonlinear.lm3 <- lm(mpg~displacement+I(weight^2)+year+origin, data=Auto)

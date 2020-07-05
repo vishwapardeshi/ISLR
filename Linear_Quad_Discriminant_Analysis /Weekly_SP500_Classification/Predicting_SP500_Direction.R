@@ -1,0 +1,205 @@
+#' ---
+#' title: 'Predicting S&P 500 Market Return Direction: Classification'
+#' author: "By Vishwa Pardeshi"
+#' output:
+#'   html_document: default
+#'   pdf_document: default
+#' ---
+#' 
+#' In this notebook, we will predict the market return direction for S&P 500 index using the Weekly S&P Stock Market Data. This is a classification problem where, we aim to predict the direction - Down or Up.
+#' 
+#' **Learning Outcome:**
+#' By following the notebook you will be able to 
+#' 
+#' 1. Perform context inspired EDA to understand relationship between predictor variables and Direction (whether the market had a positive or negative return on a given week)
+#' 
+#' 2. Implement & infer Linear Discriminant Analysis
+#' 
+#' 3. Implement & infer Quadratic Discriminant Analysis
+#' 
+#' ## Setup
+## ----setup, message=FALSE------------------------------------------------
+knitr::opts_chunk$set(echo = TRUE)
+library(ISLR)
+library(corrplot)
+library(ggplot2)
+library(MASS)
+
+#' 
+#' ## Exploratory Data Analysis
+#' 
+#' ### Glimpse of the data 
+#' 
+#' Let us first look at the head of the dataset.
+#' 
+## ----data head, echo=FALSE-----------------------------------------------
+head(Weekly)
+
+#' 
+## ------------------------------------------------------------------------
+cat("The Weekly dataset shape is ", dim(Weekly)[1], "x", dim(Weekly)[2])
+
+#' 
+#' The 9 columns capture the year, weekly lag, volumne, % return for today and direction ( a factor). 
+#' 
+## ----weekly--------------------------------------------------------------
+summary(Weekly)
+
+#' We can observe from the summary, that the distribution of values in the Direction class is comparable and not highly skewed.
+#' 
+#' ### Target Class Distribution
+#' 
+#' We observe that the distribution of target values is not highly skewed. Thus, class imbalance is absent.
+## ------------------------------------------------------------------------
+
+ggplot(Weekly) + 
+    geom_bar(aes(x = Direction))
+
+#' 
+#' ### Scatterplot Matrix
+#' 
+## ------------------------------------------------------------------------
+pairs(Weekly)
+
+#' 
+#' **From the scatterplot matrix, we notice that the scatterplot from Year and Volumn reveals an almost logarithmic relationship**
+#' 
+#' ### Heatmap of Correlation
+## ------------------------------------------------------------------------
+correlation_matrix <- cor(Weekly[, -which(names(Weekly) == "Direction")])
+corrplot(correlation_matrix, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+
+#' 
+#' **Additionally, Year & Volume have a high positive correlation**
+#' By plotting the data we see that Volume is increasing over time. In other words, **the average number of shares traded daily increased from 1990 to 2010.**
+#' 
+## ------------------------------------------------------------------------
+plot(Weekly$Volume)
+
+#' 
+#' 
+#' ## Baseline Logistic Regression
+#' 
+#' A logistic regression model is trained on the full training dataset to predict 'Direction' using the five lag variables and Volume as predictor. 
+#' 
+## ------------------------------------------------------------------------
+logit.fit <- glm(Direction~., data=Weekly[,c(2:7,9)], family=binomial)
+summary(logit.fit)
+
+
+#' 
+#' **From the summary of the logistic linear model, we notice that only Lag2 variable has a statistical significant predictive value for alpha level 0.01. **
+#' 
+#' ### Confusion matrix for logistic regression model
+#' 
+#' Confusion matrix helps capture the performance of classification model. Here, we create the confusion matrix by using the predicted class. 
+#' 
+#' The class is predicted by using the class probability predicted using the above logistic regression model. A prediction cut off of 0.5 is used.
+#' 
+## ----confusion matrix----------------------------------------------------
+logit_prob <- predict(logit.fit, Weekly, type="response")
+logit_pred <- ifelse(logit_prob > 0.5, "Up", "Down")
+conf_matrix <- table(logit_pred, Weekly$Direction)
+conf_matrix
+
+#' 
+#' From the confusion matrix, we notice that a lot of data points belonging to Down class are misclassified as Up. This indicates that the logistic regression model performs well for Up class.
+#' 
+#' **Let's look at the various performance metric by writing a function to calculate the values** 
+#' 
+## ----generate metric-----------------------------------------------------
+generate_metric <- function(data, confMatrix){
+  TP = confMatrix[2,2]
+  FP = confMatrix[1,2]
+  FN = confMatrix[2,1]
+  TN = confMatrix[1,1]
+  total_accuracy <- (TP + TN)/nrow(data)
+  class_a_accuracy <- TN/(TN + FN) 
+  class_b_accuracy <- TP/(FP + TP) 
+  precision <- TP/(TP+FP) # Calculate the Precision
+  recall <- TP/(TP+FN) # calculate recall
+  metrics <- data.frame("measurements"=c("Total Accuracy", "Class Down Accuracy", "Class Up Accuracy", "Precision", "Recall"), "rate"=c(total_accuracy, class_a_accuracy, class_b_accuracy, precision, recall))
+  return(metrics)  
+  
+}
+logit_metric <-generate_metric(Weekly, conf_matrix)
+logit_metric
+
+#' 
+#' Looking at the total accuracy which is just above 50% isnt any better than a random binary classifier. Additionally, the accuracy of our logistic model performs worse than a random model for data points belonging to the 'Down' class. This is reflected in the low recall value.
+#' 
+#' We recall that the logistic regression model had very underwhelming p- values associated with all of the predictors, and that the smallest p-value, though not very small, corresponded to Lag2. erhaps by removing the variables that appear not to be helpful in predicting Direction, we can obtain a more effective model.
+#' 
+#' 
+#' ## Linear Discriminant Analysis using training data from 1990 to 2008
+#' 
+#' Using predictors that have no relationship with the response tends to cause a deterioration in the test error rate (since such predictors cause an increase in variance without a corresponding decrease in bias), and so removing such predictors may in turn yield an improvement.
+#' 
+#' Here,`Lag2` is used as the only predictor. Here, we will use LDA
+#' 
+#' ### Create training & test subset
+## ------------------------------------------------------------------------
+train = (Weekly$Year<=2008)
+test = Weekly[!train,]
+
+#' 
+#' ### Perform LDA on training data
+## ------------------------------------------------------------------------
+lda.fit <- lda(Direction ~ Lag2, data=Weekly, subset=train)
+lda.fit
+
+
+#' 
+#' 1. The LDA output indicates the prior probabilities; in other words, 44.77% of the training observations correspond to days during which the market went down. 
+#' 
+#' 2. It also provides the group means; these are the average of each predictor within each class, and are used by LDA as estimates of mu. These suggest that there is a tendency for the previous 2 days’ returns to be negative on days when the market decreases. 
+#' 
+#' 3. The coefficients of linear discriminants output provides the coefficient of Lag2 that are used to form the LDA decision rule.
+#' 
+#' 4. The plots of the linear discriminants, obtained by computing 0.44 × Lag2 for each of the training observations.
+#' 
+## ------------------------------------------------------------------------
+plot(lda.fit)
+
+#' 
+#' ### Predict
+## ------------------------------------------------------------------------
+lda_preds <- predict(lda.fit, newdata=test)
+conf_matrix_lda <- table(lda_preds$class, test$Direction)
+conf_matrix_lda
+# compute overall of correct predictions
+metric_lda <- generate_metric(test, conf_matrix_lda)
+metric_lda
+
+#' 
+#' The current linear discriminant analysis has an improved accuracy from the baseline model. There is also an observed improvement in classifying 'Down' values. But this improvement is not impressive nor would be acceptable for making good bets. In other words, when linear discriminant analysis predicts a decrease in the model, it has a 20.93% accuracy rate which is poorer than a naive approach. This suggests a possible trading strategy of buying on days when the model predicts an increasing market, and avoiding trades on days when a decrease is predicted. Ofcourse this is not a reliable strategy. 
+#' 
+#' ## Quadratic Discriminant Analysis
+#' 
+#' When the true decision boundaries are linear, then the LDA and logistic regression approaches will tend to perform well. When the boundaries are moderately non-linear, QDA may give better results. Thus, we will explore QDA.
+#' 
+#' ### Perform QDA on training data
+## ------------------------------------------------------------------------
+quad.fit <- qda(Direction ~ Lag2, data=Weekly, subset=train)
+quad.fit
+
+#' 
+#' 1. The QDA output indicates the prior probabilities; in other words, 44.77% of the training observations correspond to days during which the market went down. 
+#' 
+#' 2. It also provides the group means; these are the average of each predictor within each class, and are used by QDA as estimates of mu. These suggest that there is a tendency for the previous 2 days’ returns to be negative on days when the market decreases. 
+#' 
+#' 3. This has the same result as LDA except for coefficients which are not generated for QDA.
+#' 
+#' ### Predict
+#' 
+## ----qda metric----------------------------------------------------------
+qda_preds <- predict(quad.fit, newdata=test)
+conf_matrix_qda <- table(qda_preds$class, test$Direction)
+conf_matrix_qda
+# compute overall of correct predictions
+metric_qda <- generate_metric(test, conf_matrix_qda)
+metric_qda
+
+#' 
+#' 
+#' QDA accuracy is lower than LDA suggesting an absence of quadratic relation. On carefully observing the confusion matrix, we notice that the QDA classifies all the data point to UP which is as good as a randoml, naive approach and hence should not be picked.
