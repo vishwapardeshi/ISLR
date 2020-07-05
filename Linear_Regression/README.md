@@ -4,7 +4,9 @@ Linear Regression is the oldest supervised machine learning algorithm. Its assum
 
 ## Dataset
 
-Autompg - UCI ML repository
+1. Autompg - UCI ML repository
+2. Boston Housing Price Dataset
+
 
 ## Concepts covered
 Here, the following topics are explored using R 
@@ -15,6 +17,7 @@ Here, the following topics are explored using R
 4. Interaction Terms
 5. Non-Linear Transformation
 6. Diagnostic Plots
+7. Stepwise selection (Boston Housing Price)
 
 ## Tech
 R markdown, R
