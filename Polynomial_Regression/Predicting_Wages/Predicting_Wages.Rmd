@@ -1,0 +1,107 @@
+---
+title: 'Predicting Wages: Polynomial Regression & Step Functions'
+author: "By Vishwa Pardeshi"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+In this notebook, we will predict the wages of males who reside in the central Atlantic region of the United States. 
+
+**Learning Outcome:**
+By following the notebook you will be able to 
+
+1. Implement Polynomial Regression & Step Funtion
+
+2. Identify optimal degree using cross-validation
+
+3. Perform hypothesis testing using ANOVA
+
+## Setup
+```{r setup}
+library(ISLR)
+library(boot)
+```
+
+## Find optimal degree for polynomial regression.
+
+```{r cross validation}
+set.seed(1)
+
+cv.error <- rep(0,10)
+for (i in 1:10) {
+  glm.fit <- glm(wage~poly(age,i), data=Wage)
+  cv.error[i] <- cv.glm(Wage, glm.fit, K=10)$delta[1]  # [1]:std, [2]:bias-corrected
+}
+cv.error
+```
+
+### Plot the cross validation error
+
+```{r pressure, echo=FALSE}
+plot(cv.error, type="b")
+```
+
+The optimal degree for polynomial regression model is 9 as it lowest cross validation error.
+
+## Hypothesis Testing using ANOVA
+
+```{r ANOVA}
+fit.01 <- lm(wage~age, data=Wage)
+fit.02 <- lm(wage~poly(age,2), data=Wage)
+fit.03 <- lm(wage~poly(age,3), data=Wage)
+fit.04 <- lm(wage~poly(age,4), data=Wage)
+fit.05 <- lm(wage~poly(age,5), data=Wage)
+fit.06 <- lm(wage~poly(age,6), data=Wage)
+fit.07 <- lm(wage~poly(age,7), data=Wage)
+fit.08 <- lm(wage~poly(age,8), data=Wage)
+fit.09 <- lm(wage~poly(age,9), data=Wage)
+fit.10 <- lm(wage~poly(age,10), data=Wage)
+anova(fit.01,fit.02,fit.03,fit.04,fit.05,fit.06,fit.07,fit.08,fit.09,fit.10)
+```
+
+ANOVA hypothesis shows statistically significant result for degree 3 and 9. Since we noticed that the cv error for degree 9 was the lowest, we pick degree 9 as the optimal degree for our polynomial regression model.
+
+```{r}
+agelims <- range(Wage$age)
+age.grid <- seq(agelims[1], agelims[2])
+preds <- predict(fit.09, newdata=list(age=age.grid), se=TRUE)
+se.bands <- preds$fit + cbind(2*preds$se.fit, -2*preds$se.fit)
+par(mfrow=c(1,1), mar=c(4.5,4.5,1,1), oma=c(0,0,4,0))
+plot(Wage$age, Wage$wage, xlim=agelims, cex=0.5, col="darkgrey")
+title("Degree 9 Polynomial Fit", outer=TRUE)
+lines(age.grid, preds$fit, lwd=2, col="blue")
+matlines(age.grid, se.bands, lwd=1, col="blue", lty=3)
+```
+
+## Find optimal cut for step function using CV
+
+```{r optimal cut }
+set.seed(1)
+
+# cross-validation
+cv.error <- rep(0,9)
+for (i in 2:10) {
+  Wage$age.cut <- cut(Wage$age,i)
+  glm.fit <- glm(wage~age.cut, data=Wage)
+  cv.error[i-1] <- cv.glm(Wage, glm.fit, K=10)$delta[1]  # [1]:std, [2]:bias-corrected
+}
+cv.error
+```
+
+### Plot for cv error
+```{r}
+plot(2:10, cv.error, type="b")
+```
+
+## Implement step functions
+
+```{r step function}
+cut.fit <- glm(wage~cut(age,8), data=Wage)
+preds <- predict(cut.fit, newdata=list(age=age.grid), se=TRUE)
+se.bands <- preds$fit + cbind(2*preds$se.fit, -2*preds$se.fit)
+plot(Wage$age, Wage$wage, xlim=agelims, cex=0.5, col="darkgrey")
+title("Fit with 8 Age Bands")
+lines(age.grid, preds$fit, lwd=2, col="blue")
+matlines(age.grid, se.bands, lwd=1, col="blue", lty=3)
+```

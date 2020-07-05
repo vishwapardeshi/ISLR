@@ -11,7 +11,18 @@ header-includes:
 - \newcommand{\bitem}{\begin{itemize}}
 - \newcommand{\eitem}{\end{itemize}}
 ---
+In this notebook, we will predict the price of houses in Boston region using the ever famous Boston Housing Price Dataset.
 
+**Learning Outcome:**
+By following the notebook you will be able to 
+
+1. Perform context inspired EDA to understand relationship between predictor variables and medv (the median house value)
+
+2. Implement & infer Simple & Multiple Linear Regression
+
+3. Perform feature selection using forward and backward stepwise selection
+
+4. Evaluate statistical assumptions of linear regression models
 
 
 ## Setup

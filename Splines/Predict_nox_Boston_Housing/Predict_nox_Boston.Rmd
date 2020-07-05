@@ -1,0 +1,94 @@
+---
+title: 'Predicting Nitrogen Oxide concentration in Boston: Splines'
+author: "By Vishwa Pardeshi"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+In this notebook, we will predict the concentration of nitrogen oxides in Boston housing (nox) using Boston Housing Price dataset. We will use the weighted mean of distances to five Boston employment centers i.e. dis as the predictor variable. 
+
+**Learning Outcome:**
+By following the notebook you will be able to 
+
+1. Implement Polynomial Regression & Spline
+
+2. Identify optimal degree of freedom using cross-validation
+
+
+## Setup
+```{r setup}
+library(ISLR)
+library(MASS)
+library(splines)
+```
+
+## Implement & plot cubic polynomial regression model 
+
+```{r cubic}
+fit.cubic <- lm(nox~poly(dis,3), data=Boston)
+dislims <- range(Boston$dis)
+dis.grid <- seq(dislims[1], dislims[2], 0.1)
+preds <- predict(fit.cubic, newdata=list(dis=dis.grid), se=TRUE)
+se.bands <- preds$fit + cbind(2*preds$se.fit, -2*preds$se.fit)
+par(mfrow=c(1,1), mar=c(4.5,4.5,1,1), oma=c(0,0,4,0))
+plot(Boston$dis, Boston$nox, xlim=dislims, cex=0.5, col="darkgrey")
+title("Degree 3 Polynomial Fit")
+lines(dis.grid, preds$fit, lwd=2, col="blue")
+matlines(dis.grid, se.bands, lwd=1, col="blue", lty=3)
+```
+
+```{r}
+summary(fit.cubic)
+```
+
+## Plot the polynomial fits for a range of different polynomial degrees
+```{r poly degree}
+rss.error <- rep(0,10)
+for (i in 1:10) {
+  lm.fit <- lm(nox~poly(dis,i), data=Boston)
+  rss.error[i] <- sum(lm.fit$residuals^2)
+}
+rss.error
+```
+
+### Plot the RSS error
+
+```{r plot, echo=FALSE}
+plot(rss.error, type="b")
+```
+
+The lowest RSS is for the higher order of polynomial regression model.
+
+## fit a regression spline to predict nox using dis.
+
+```{r splines}
+fit.spline <- lm(nox~bs(dis, df=4), data=Boston)
+pred <- predict(fit.spline, newdata=list(dis=dis.grid), se=T)
+plot(Boston$dis, Boston$nox, col="gray")
+lines(dis.grid, pred$fit, lwd=2)
+lines(dis.grid, pred$fit+2*pred$se, lty="dashed")
+lines(dis.grid, pred$fit-2*pred$se, lty="dashed")
+```
+
+```{r}
+#set df to select knots at uniform quantiles of `dis`
+attr(bs(Boston$dis,df=4),"knots")  # only 1 knot at 50th percentile
+```
+
+## Fit a regression spline for a range of degrees of freedom
+
+```{r}
+set.seed(1)
+rss.error <- rep(0,7)
+for (i in 4:10) {
+  fit.sp <- lm(nox~bs(dis, df=i), data=Boston)
+  rss.error[i-3] <- sum(fit.sp$residuals^2)
+}
+rss.error
+
+plot(4:10, rss.error, type="b")  
+```
+
+RSS decreases on train set as the model becomes more flexible.
