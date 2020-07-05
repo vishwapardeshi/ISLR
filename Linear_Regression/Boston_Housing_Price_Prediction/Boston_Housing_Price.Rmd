@@ -1,0 +1,274 @@
+---
+title: "Boston Housing Price Prediction - Regression"
+author: "By Vishwa Pardeshi"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+header-includes:
+- \newcommand{\benum}{\begin{enumerate}}
+- \newcommand{\eenum}{\end{enumerate}}
+- \newcommand{\bitem}{\begin{itemize}}
+- \newcommand{\eitem}{\end{itemize}}
+---
+
+
+
+## Setup
+
+In this problem set you will need, at minimum, the following R packages.
+
+```{r Setup, message=FALSE}
+# Load standard libraries
+library(tidyverse)
+library(MASS) # Modern applied statistics functions
+library(corrplot)
+```
+
+## Exploratory Data Analysis
+\textbf{Housing Values in Suburbs of Boston}
+
+In this problem we will use the Boston dataset that is available in the \texttt{MASS} package. This dataset contains information about median house value for 506 neighborhoods in Boston, MA. Load this data and use it to answer the following questions.
+```{r Load data, message=TRUE}
+#loading housing price data in variable Boston
+data("Boston")
+```
+
+\benum
+
+\item Describe the data and variables that are part of the \texttt{Boston} dataset. Tidy data as necessary.
+```{r Data Cleaning, message=TRUE}
+#checking dimensions, columns and snippet of data
+dim(Boston)
+colnames(Boston)
+summary(Boston)
+head(Boston)
+
+#checking for missing and duplicate values in Boston respectively
+sum(is.na(Boston))
+sum(duplicated(Boston))
+```
+There are 506 rows of 14 variables which are as follows:
+
+crim - per capita crime rate by town.
+
+zn - proportion of residential land zoned for lots over 25,000 sq.ft.
+
+indus - proportion of non-retail business acres per town.
+
+chas - Charles River dummy variable (= 1 if tract bounds river; 0 otherwise).
+
+nox - nitrogen oxides concentration (parts per 10 million).
+
+rm - average number of rooms per dwelling.
+
+age - proportion of owner-occupied units built prior to 1940.
+
+dis - weighted mean of distances to five Boston employment centres.
+
+rad - index of accessibility to radial highways.
+
+tax - full-value property-tax rate per \$10,000.
+
+ptratio - pupil-teacher ratio by town.
+
+black - 1000(Bk - 0.63)^2 where Bk is the proportion of blacks by town.
+
+lstat - lower status of the population (percent).
+
+medv - median value of owner-occupied homes in \$1000s.
+
+
+Since,there are no missing and duplicated value no data cleaning is required. The dataset is already tidy.
+
+\item Consider this data in context, what is the response variable of interest?
+
+In this data context, the response variable of interest is the price of the house, medv.
+
+```{r EDA, message=TRUE}
+corr_matrix<-cor(Boston)
+corrplot(corr_matrix,method = "number", type="upper", diag = FALSE, main = "Figure 1: Corrplot for Boston Data", mar=c(0,0,2,0))
+```
+
+From Figure 1, we notice that there is a strong correlation between the response variable and the predictors - lstat and rm.
+
+Additionally, it can be noticed from figure 1 that medv decreases with increase in crim (medium), indus (medium), nox(medium), age(low), rad(low), tax(medium), ptratio(high), lstat(high) and increase with chas(low),zn(low), rm (high), dis(low), black(low).
+The weakest correlation is with chas. 
+
+
+```{r EDA2, message=TRUE}
+pairs(~ medv + rm + lstat + ptratio  + crim + nox  + indus , data = Boston, main = "Figure 2: Scatterplot for Boston Data")
+```
+
+Thus, we deduce from Figure 2 that there is a strong linear relationship between medv and rm. On the other hand, there is a non-linear relationship between medv and lstat.
+
+## [Simple Linear Regression](https://medium.com/@pardeshi.vishwa25/linear-regression-model-for-ml-cd18a392bd8b?source=friends_link&sk=7682368acebef7c531b02da7788892bf)
+
+\item For each predictor, fit a simple linear regression model to predict the response. In which of the models is there a statistically significant association between the predictor and the response? Create some plots to back up your assertions. 
+
+```{r}
+#vector for predictor, response and variables
+variables <- c(colnames(Boston))
+response <- "medv"
+predictor <- variables[!(variables %in% response)]
+coefficientLinear <- c()
+cat("\nLinear Regression for response variable medv.")
+
+for(var in predictor){
+  cat("\n\nFor predictor variable", var, ":\nThe estimated coefficient and p-value: \n")
+  model <- lm(medv ~ Boston[,var], data = Boston)
+  summaryModel <- summary(model)
+  printCoefmat(coef(summary(model)))
+  coefficientLinear[length(coefficientLinear) + 1] <- as.numeric(summaryModel$coefficients[2,1])
+  if(summaryModel$coefficients[2,4] < 0.05){
+    cat("At a signifance level of 0.05, the predictor variable", var, "is statistically significant.")
+  }
+  else{
+    cat("At a signifance level of 0.05, the predictor variable", var, "is not statistically significant.")
+  }
+}
+#plots for each predictors
+Boston %>%
+  gather(key, val, -medv) %>%
+  ggplot(aes(x = val, y = medv)) +
+  geom_point() +
+  stat_smooth(method = "lm", se = TRUE, col = "blue") +
+  facet_wrap(~key, scales = "free") +
+  theme_gray() +
+  ggtitle("Figure 3: Scatter plot of predictor variables vs Median Value (medv)") 
+```
+
+
+
+Even though it is observed that all the models created above have statistically significant coefficient estimates at 0.05 alpha level, Figure 3 paints a different picture in terms of the nature of relationship. 
+
+Though the regression line fitted for each predictor response pair has a line that has statistically significant coefficients, this doesn't necessarily imply a linear relationship between the predictor and the variable
+
+## [Multiple Linear Regression](https://medium.com/@pardeshi.vishwa25/linear-regression-model-for-ml-cd18a392bd8b?source=friends_link&sk=7682368acebef7c531b02da7788892bf)
+
+\item Fit a multiple regression model to predict the response using all of the predictors. Describe your results. For which predictors can we reject the null hypothesis $H_0: \beta_j = 0$?
+
+```{r Multiple Regression, message=TRUE}
+#multiple regression
+multiModel <- lm(formula = medv ~ ., data = Boston)
+summary(multiModel)
+coefficientMultiple <- summary(multiModel)$coefficients[-1,1]
+coefficient <- cbind(coefficientLinear, coefficientMultiple)
+
+```
+
+On observing the coefficients and their respective p-value, we notice indus and age's p value which makes it statistically insignificant at an alpha level of 0.05.
+
+At a statistial significance level of 0.05, all predictor variables except indus and age have statistically significant coefficient estimates thus the null hypothesis can be rejected for these predictor variables.
+
+Thus, multiple regression line will contain all predictor variables except indus and age.
+
+\item How do your results from (3) compare to your results from (4)? Use visualization to support your response.
+
+The results from (3) and (4) are compared using the plot. If each of the predictor variable is independent of the othe predictor variable then its influence or extent of association with the response variable should be almost similar in both - single and multiple regression model. If the coefficients are similar for both multiple and single regression, they will lie on the line passing through origin with a slope of 1. 
+
+However, as is observed from previous results i.e. of correlation matrix, we know that a few predictor variables have a strong correlation and hence as a result this will be reflected in the Figure 4.
+
+```{r}
+#plot for coefficients
+
+ggplot(as.data.frame(coefficient), aes(x=coefficientLinear, y=coefficientMultiple)) +
+  geom_point() +
+  coord_fixed() +  
+  geom_vline(xintercept = 0) + geom_hline(yintercept = 0) +
+  geom_abline(a = 0, b = 1)  + 
+  ggtitle("Figure 4: Plot of Coefficients")
+#plot(x=coefficientLinear, y=coefficientMultiple)
+#identify(x=coefficientLinear, y=coefficientMultiple, labels = row.names(coefficient))
+```
+
+Figure 4 demonstrates how most coefficients in Multiple and single model are pretty close to one another, however a few are a little far off possibly due to other hidden relationships which we have not explored. 
+
+## Non-linear transformation
+
+\item Is there evidence of a non-linear association between any of the predictors and the response? To answer this question, for each predictor $X$ fit a model of the form:
+  
+  $$ Y = \beta_0 + \beta_1 X + \beta_2 X^2 + \beta_3 X^3 + \epsilon $$
+
+
+Observation of figure 2 showed us that there are indeed some non-linear associations between predictors and responses.
+
+```{r}
+#evaluate the non-linear model for each predictor variable
+for(var in predictor){
+  cat("\n\nFor predictor variable", var, ":\nThe estimated coefficient and p-value: \n")
+  model <- lm(medv ~ poly(Boston[,var],3,  raw = TRUE), data = Boston)
+  summaryModel <- coef(summary(model))
+  printCoefmat(summaryModel)
+  
+}
+pairs(~ medv + zn + rm + lstat, data = Boston, main = "Figure 5: Exploring non-linear relationships")
+```
+
+Thus, the most significant association is noticed for zn, rm and lstat. 
+
+As can be observed from the above figure 5, the relationship indeed is non linear for lstat.
+
+## Feature Selection - Stepwise Forward & Backward Selection
+\item Consider performing a stepwise model selection procedure to determine the bets fit model. Discuss your results. How is this model different from the model in (4)?
+
+Here, I will perform both forward and backward stepwise model selection procedure to observe the AIC of both. Consequently, I will compare this with the AIC value of the multiple regression model (4). 
+
+```{r}
+
+#Variable selection using stepwise regression
+nullmodel <- lm(medv ~ 1, data = Boston)
+fullmodel <- lm(medv ~ ., data = Boston) 
+
+#stepwise selection
+
+#backward
+modelBack <- step(fullmodel, direction = "backward")
+#forward
+modelFront<- step(nullmodel, scope = list(upper=fullmodel,lower=nullmodel), direction = "forward")
+
+
+summary(modelFront)
+summary(modelBack)
+
+cat("The AIC for multiple regression model:", extractAIC(multiModel)[2],"\nThe AIC for forward stepwise selection model:",extractAIC(modelFront)[2], "\nThe AIC for backward stepwise selection model:",extractAIC(modelBack)[2])
+
+
+```
+
+From stepwise selection, we see that all variables except indus and age are significant and retained in the model. 
+
+The AIC for all the models is almost comparable. AIC of the stepwise selection model is better than that of multiple regressionmodel as it get rids of predictor variables which have weak/no association with the response variable thus improving the overall fit of the model.
+
+## Evaluating Statistical Assumption
+\item Evaluate the statistical assumptions in your regression analysis from (7) by performing a basic analysis of model residuals and any unusual observations. 
+
+```{r}
+residual <- modelBack$residuals
+ggplot(data = data.frame(x = Boston$medv, 
+                         y = residual), 
+       aes(x = x, y = y)) + 
+  geom_point() + 
+  geom_hline(yintercept = 0) + 
+  ggtitle("Figure 6: Residual Plot for ModelBack")
+plot(modelBack, which=2, col=c("red"))
+```
+The statistical assumption for a regression analysis is that 
+
+1. Error is independent for each observation and identically distributed with a common variance.
+
+2. Linearity
+
+3. Normality
+
+Thus, analysis of the residual plot for the modelBack generated in (7) helps us understand if our assumptions are reasonable in this data context. 
+
+Figure 6 helps establish that there is no symmetric pattern or trend in the residual plot which tells us that the linearity assumption holds true. Though, it is a bit crowded at around \$20000 the overall distribution of residual is fairly spread around the horizontal line without a pattern. This establishes that our assumption 1 holds true to a significant exten. Though there is an unusual trend towards higher value of medv which could easily be explained as there are outliers. In addition to this, there is an unusual crowding as mentioned before at \$20000. We might want to look into in further.
+
+Figure 7, the Normal QQ plot is used to indictate that the residuals are fairly normally distributed as is expected of them (assumption 3). There is a slight deviation from the expected towards the end but that is probably not significant, making this a reasonable alignment.
+
+One of the concern about the models is that the most strongly correlated predictor variable, lstat has a non-linear relationship with response variable, medv. Yet we continue to use a linear regression model to fit their relationship which I believe is not the "best" fit model available and we should explore other methods.
+
+\eenum
+
+
